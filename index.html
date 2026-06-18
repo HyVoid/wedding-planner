@@ -385,7 +385,7 @@
     const app = document.getElementById('app');
     const tabs = document.getElementById('tabs');
     const saveStatus = document.getElementById('saveStatus');
-    const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'CNY', maximumFractionDigits: 0 });
+    const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
     const number = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
     const today = new Date('2026-06-17T00:00:00');
     function sum(arr, selector) { return arr.reduce((total, row) => total + (+selector(row) || 0), 0); }
