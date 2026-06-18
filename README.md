@@ -1,5 +1,5 @@
 
-**A lightweight wedding planning control board thatKeep vendors, guests, budget, tasks, and planning notes in one place.**
+**A lightweight wedding planning control board that keep vendors, guests, budget, tasks, and planning notes in one place.**
 
 [Browser Version](https://hyvoid.github.io/wedding-planner/) · [Excel Version](https://github.com/HyVoid/wedding-planner/blob/main/Wedding_Control_Board.xlsx) 
 
