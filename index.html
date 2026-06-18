@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wedding Control Board</title>
+  <style>
+    :root {
+      --color-primary: #051C2C;
+      --color-accent: #2251FF;
+      --color-bg: #F5F5F2;
+      --color-muted: #888888;
+      --color-body-text: #1A1A2E;
+      --color-positive: #00C853;
+      --color-negative: #D32F2F;
+      --color-surface: #FFFFFF;
+      --color-input-bg: #FFFDE7;
+      --color-border: #E8E8E6;
+      --nav-bg: #FFFFFF;
+      --nav-border: #E8E8E6;
+      --nav-text: #051C2C;
+      --nav-text-inactive: rgba(5, 28, 44, 0.45);
+      --table-header-bg: rgba(5, 28, 44, 0.04);
+      --table-header-sep: rgba(5, 28, 44, 0.12);
+      --insight-bg: rgba(34, 81, 255, 0.04);
+      --anomaly-bg: rgba(211, 47, 47, 0.04);
+      --bar-track: rgba(34, 81, 255, 0.10);
+      --font-heading: 'EB Garamond', 'Garamond', Georgia, serif;
+      --font-body: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --text-page-title: 34px;
+      --text-section: 18px;
+      --text-kpi-value: 38px;
+      --text-table-head: 11px;
+      --text-body: 13px;
+      --text-label: 11px;
+      --tracking-display: -0.03em;
+      --tracking-heading: -0.02em;
+      --tracking-label: 0.06em;
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 24px;
+      --space-xl: 40px;
+      --space-2xl: 64px;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-pill: 100px;
+      --shadow-sm: 0 1px 2px rgba(5, 28, 44, 0.04), 0 2px 8px rgba(5, 28, 44, 0.06);
+      --shadow-md: 0 2px 4px rgba(5, 28, 44, 0.04), 0 8px 24px rgba(5, 28, 44, 0.08), 0 1px 0 rgba(255,255,255,0.6) inset;
+      --shadow-lg: 0 4px 8px rgba(5, 28, 44, 0.06), 0 16px 48px rgba(5, 28, 44, 0.14), 0 1px 0 rgba(255,255,255,0.5) inset;
+      --shadow-nav: 0 1px 3px rgba(5, 28, 44, 0.06), 0 1px 0 rgba(5, 28, 44, 0.08);
+      --ease-standard: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1.0);
+      --ease-decel: cubic-bezier(0.0, 0.0, 0.2, 1.0);
+      --dur-fast: 150ms;
+      --dur-normal: 250ms;
+      --dur-page: 220ms;
+      --nav-height: 56px;
+      --row-height-body: 40px;
+      --row-height-header: 44px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--color-bg);
+      color: var(--color-body-text);
+      font-family: var(--font-body);
+      font-size: var(--text-body);
+      line-height: 1.55;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+    button, input, select, textarea { font: inherit; }
+    .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      height: var(--nav-height);
+      background: var(--nav-bg);
+      border-bottom: 1px solid var(--nav-border);
+      box-shadow: var(--shadow-nav);
+    }
+    .nav-inner {
+      max-width: 1400px;
+      height: 100%;
+      margin: 0 auto;
+      padding: 0 var(--space-xl);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-lg);
+    }
+    .brand {
+      font-family: var(--font-heading);
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: var(--tracking-heading);
+      color: var(--nav-text);
+      white-space: nowrap;
+    }
+    .tabs {
+      height: 100%;
+      display: flex;
+      gap: var(--space-sm);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .storage-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      white-space: nowrap;
+    }
+    .save-status {
+      color: var(--color-muted);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+    .tab {
+      border: 0;
+      background: transparent;
+      color: var(--nav-text-inactive);
+      height: 100%;
+      padding: 0 10px;
+      white-space: nowrap;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard);
+    }
+    .tab:hover { color: var(--nav-text); }
+    .tab:active { transform: scale(0.97); }
+    .tab.active { color: var(--nav-text); border-bottom-color: var(--color-accent); }
+    .page-wrapper {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 48px var(--space-xl) var(--space-2xl);
+    }
+    .view.active { animation: fadeUp var(--dur-page) var(--ease-decel) both; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .page-header { margin-bottom: 32px; display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-lg); }
+    .page-title {
+      margin: 0 0 var(--space-xs);
+      font-family: var(--font-heading);
+      font-size: var(--text-page-title);
+      letter-spacing: var(--tracking-display);
+      color: var(--color-primary);
+      line-height: 1.05;
+    }
+    .page-subtitle { margin: 0; color: var(--color-muted); max-width: 760px; }
+    .section-title {
+      margin: 0;
+      font-family: var(--font-heading);
+      font-size: var(--text-section);
+      letter-spacing: var(--tracking-heading);
+      color: var(--color-primary);
+      line-height: 1.1;
+    }
+    .section-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); margin-bottom: var(--space-md); }
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(180px, 1fr));
+      gap: var(--space-md);
+      margin-bottom: var(--space-xl);
+    }
+    .card {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      transition: transform var(--dur-normal) var(--ease-spring), box-shadow var(--dur-normal) var(--ease-standard), filter var(--dur-fast) var(--ease-standard);
+    }
+    .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+    .kpi-card { padding: var(--space-lg); min-height: 130px; }
+    .kpi-label {
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-label);
+      font-size: var(--text-label);
+      font-weight: 600;
+      color: var(--color-muted);
+      margin-bottom: var(--space-sm);
+    }
+    .kpi-value {
+      font-family: var(--font-heading);
+      color: var(--color-primary);
+      font-size: var(--text-kpi-value);
+      letter-spacing: var(--tracking-display);
+      line-height: 1;
+      margin-bottom: var(--space-sm);
+    }
+    .kpi-value.accent { color: var(--color-accent); }
+    .kpi-note { color: var(--color-muted); font-size: 12px; }
+    .kpi-card.anomaly { background: var(--anomaly-bg); }
+    .kpi-card.anomaly .kpi-note { color: var(--color-negative); font-weight: 600; }
+    .grid-2 { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(360px, 0.75fr); gap: var(--space-md); margin-bottom: var(--space-xl); }
+    .panel { padding: var(--space-lg); }
+    .insight-block {
+      background: var(--insight-bg);
+      border-left: 3px solid var(--color-accent);
+      border-radius: var(--radius-md);
+      padding: var(--space-md) var(--space-lg);
+      margin-bottom: var(--space-xl);
+      color: var(--color-primary);
+    }
+    .insight-block strong { font-family: var(--font-heading); font-size: 18px; letter-spacing: var(--tracking-heading); }
+    .table-card { overflow: hidden; border-radius: var(--radius-md); box-shadow: var(--shadow-md); background: var(--color-surface); margin-bottom: var(--space-xl); }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 880px; }
+    th {
+      height: var(--row-height-header);
+      background: var(--table-header-bg);
+      color: var(--color-primary);
+      font-size: var(--text-table-head);
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-label);
+      font-weight: 600;
+      text-align: left;
+      padding: 0 12px;
+      border-bottom: 2px solid var(--table-header-sep);
+      white-space: nowrap;
+    }
+    td {
+      height: var(--row-height-body);
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--color-border);
+      vertical-align: middle;
+    }
+    tr:nth-child(even) td { background: var(--color-bg); }
+    tr:nth-child(odd) td { background: var(--color-surface); }
+    tr.anomaly td { background: var(--anomaly-bg); }
+    .num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    input.cell-input, select.cell-input, textarea.cell-input {
+      width: 100%;
+      min-width: 96px;
+      background: var(--color-input-bg);
+      border: 0;
+      border-radius: var(--radius-sm);
+      color: var(--color-body-text);
+      padding: 7px 8px;
+      outline: none;
+      transition: box-shadow var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard);
+    }
+    textarea.cell-input { min-height: 34px; resize: vertical; }
+    input.cell-input:focus, select.cell-input:focus, textarea.cell-input:focus { box-shadow: 0 0 0 2px var(--color-accent); }
+    .readonly { color: var(--color-primary); font-weight: 600; }
+    .muted { color: var(--color-muted); }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      color: var(--color-primary);
+      background: var(--table-header-bg);
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: transform var(--dur-fast) var(--ease-standard), filter var(--dur-fast) var(--ease-standard);
+    }
+    .badge:hover { transform: scale(1.04); filter: brightness(0.98); }
+    .badge.action { color: var(--color-negative); background: var(--anomaly-bg); }
+    .badge.done { color: var(--color-muted); }
+    .data-bar { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: var(--space-sm); min-width: 150px; }
+    .bar-track { height: 8px; border-radius: var(--radius-pill); background: var(--bar-track); overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: inherit; background: var(--color-accent); width: 0; transition: width var(--dur-normal) var(--ease-standard); }
+    .bar-label { font-variant-numeric: tabular-nums; color: var(--color-primary); font-weight: 600; }
+    .toolbar { display: flex; gap: var(--space-sm); align-items: center; flex-wrap: wrap; }
+    .btn {
+      border: 0;
+      border-radius: var(--radius-pill);
+      background: var(--color-primary);
+      color: var(--color-surface);
+      min-height: 34px;
+      padding: 0 14px;
+      cursor: pointer;
+      transition: transform var(--dur-fast) var(--ease-standard), filter var(--dur-fast) var(--ease-standard);
+    }
+    .btn:hover { filter: brightness(1.05); }
+    .btn:active { transform: scale(0.97); }
+    .nav-btn {
+      min-height: 30px;
+      padding: 0 11px;
+      background: var(--table-header-bg);
+      color: var(--color-primary);
+      font-size: 12px;
+    }
+    .progress-list { display: grid; gap: 14px; margin-top: var(--space-md); }
+    .mini-chart { display: flex; align-items: flex-end; gap: 10px; height: 220px; padding-top: var(--space-lg); }
+    .mini-bar { flex: 1; min-width: 36px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 8px; }
+    .mini-bar-fill { width: 100%; border-radius: var(--radius-sm) var(--radius-sm) 0 0; background: var(--color-accent); min-height: 4px; transition: height var(--dur-normal) var(--ease-standard); }
+    .mini-bar-label { color: var(--color-muted); font-size: 11px; text-align: center; min-height: 30px; }
+    @media (max-width: 980px) {
+      .nav-inner { padding: 0 var(--space-md); align-items: stretch; flex-direction: column; height: auto; }
+      .top-nav { height: auto; min-height: var(--nav-height); }
+      .brand { padding-top: 10px; }
+      .tabs { min-height: 42px; }
+      .storage-actions { padding-bottom: 10px; overflow-x: auto; }
+      .page-wrapper { padding: 32px var(--space-md) var(--space-xl); }
+      .page-header { display: block; }
+      .kpi-row, .grid-2 { grid-template-columns: 1fr; }
+      table { min-width: 920px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="top-nav">
+    <div class="nav-inner">
+      <div class="brand">Wedding Control Board</div>
+      <div class="tabs" id="tabs"></div>
+      <div class="storage-actions">
+        <span class="save-status" id="saveStatus">Not saved</span>
+        <button class="btn nav-btn" onclick="exportBackup()">Export Backup</button>
+        <button class="btn nav-btn" onclick="document.getElementById('backupInput').click()">Import Backup</button>
+        <button class="btn nav-btn" onclick="resetData()">Reset Data</button>
+        <input id="backupInput" type="file" accept="application/json,.json" hidden onchange="importBackup(event)">
+      </div>
+    </div>
+  </nav>
+  <main class="page-wrapper" id="app"></main>
+
+  <script>
+    const dict = {
+      taskCategories: ['Venue & Ceremony','Core Vendors','Attire & Jewelry','Paper & Gifts','Guest Execution','Other'],
+      taskStatus: ['Not Started','In Progress','Pending Confirmation','Completed'],
+      owners: ['Groom','Bride','Joint','Best Man','Maid of Honor','Planning Team'],
+      vendorCategories: ['Wedding Planning','Host / MC','Makeup / Styling','Photo / Video','Banquet Venue','Floral Design','Other'],
+      payStatus: ['Unpaid','Deposit Paid','Paid in Full'],
+      yesNo: ['Yes','No'],
+      guestSide: ['Groom Side','Bride Side','Mutual Friends'],
+      guestGroup: ['Close Family','Close Friends','Classmates','Colleagues','Other'],
+      rsvpStatus: ['Confirmed','Declined','Tentative','Not Contacted'],
+      budgetCategories: ['Venue & Banquet','Core Vendor Services','Attire & Jewelry','Paper & Gifts','Contingency / Misc'],
+      noteScenario: ['Planner Call','Family Meeting','Site Visit','WeChat Confirmation','Inspiration Note'],
+      linkModule: ['Task','Vendor','None'],
+      vendorToBudget: {
+        'Wedding Planning': 'Core Vendor Services',
+        'Host / MC': 'Core Vendor Services',
+        'Makeup / Styling': 'Core Vendor Services',
+        'Photo / Video': 'Core Vendor Services',
+        'Banquet Venue': 'Venue & Banquet',
+        'Floral Design': 'Core Vendor Services',
+        'Other': 'Contingency / Misc'
+      }
+    };
+
+    const STORAGE_KEY = 'wedding-control-board-v1';
+    const defaultState = {
+      active: 'Dashboard',
+      tasks: [
+        { Task_ID:'T001', Category:'Venue & Ceremony', Task_Name:'Confirm banquet venue and ceremony flow', Due_Date:'2026-06-24', Status:'In Progress', Owner:'Joint', Notes:'Confirm ceremony start time and menu package' },
+        { Task_ID:'T002', Category:'Core Vendors', Task_Name:'Book makeup artist and trial session', Due_Date:'2026-07-01', Status:'Pending Confirmation', Owner:'Bride', Notes:'Ask for trial makeup photos and schedule' },
+        { Task_ID:'T003', Category:'Guest Execution', Task_Name:'Send first RSVP message to family groups', Due_Date:'2026-06-14', Status:'Not Started', Owner:'Planning Team', Notes:'Overdue sample to test warning rule' },
+        { Task_ID:'T004', Category:'Paper & Gifts', Task_Name:'Approve invitation wording and print quantity', Due_Date:'2026-07-08', Status:'Completed', Owner:'Groom', Notes:'Final proof approved' }
+      ],
+      vendors: [
+        { Vendor_ID:'V001', Category:'Banquet Venue', Vendor_Name:'Harbor View Banquet Hall', Contact:'Ms. Chen - 13800000000', Contract_Amt:180000, Deposit_Paid:50000, Pay_Status:'Deposit Paid', Contract_Saved:'Yes' },
+        { Vendor_ID:'V002', Category:'Photo / Video', Vendor_Name:'Blue Frame Studio', Contact:'Mr. Lin - 13900000000', Contract_Amt:52000, Deposit_Paid:15000, Pay_Status:'Deposit Paid', Contract_Saved:'Yes' },
+        { Vendor_ID:'V003', Category:'Floral Design', Vendor_Name:'Mori Floral', Contact:'Ivy - 13700000000', Contract_Amt:28000, Deposit_Paid:0, Pay_Status:'Unpaid', Contract_Saved:'No' }
+      ],
+      guests: [
+        { Guest_ID:'G001', Guest_Name:'Alex Zhang', Side:'Groom Side', Group:'Close Family', RSVP_Status:'Confirmed', Est_Guests:2, Act_Guests:2, Table_No:'1', Dietary_Req:'No alcohol' },
+        { Guest_ID:'G002', Guest_Name:'Mia Wang', Side:'Bride Side', Group:'Close Friends', RSVP_Status:'Tentative', Est_Guests:1, Act_Guests:0, Table_No:'', Dietary_Req:'Vegetarian' },
+        { Guest_ID:'G003', Guest_Name:'Chris Lee', Side:'Mutual Friends', Group:'Colleagues', RSVP_Status:'Not Contacted', Est_Guests:1, Act_Guests:0, Table_No:'', Dietary_Req:'' },
+        { Guest_ID:'G004', Guest_Name:'Emma Chen', Side:'Bride Side', Group:'Close Family', RSVP_Status:'Declined', Est_Guests:2, Act_Guests:0, Table_No:'', Dietary_Req:'' }
+      ],
+      budgets: [
+        { Budget_ID:'B01', Category:'Venue & Banquet', Plan_Budget:220000 },
+        { Budget_ID:'B02', Category:'Core Vendor Services', Plan_Budget:110000 },
+        { Budget_ID:'B03', Category:'Attire & Jewelry', Plan_Budget:60000 },
+        { Budget_ID:'B04', Category:'Paper & Gifts', Plan_Budget:25000 },
+        { Budget_ID:'B05', Category:'Contingency / Misc', Plan_Budget:35000 }
+      ],
+      notes: [
+        { Note_ID:'N001', Date:'2026-06-17', Scenario:'Planner Call', Content:'Confirmed trial makeup schedule with planner.', Decision:'Trial makeup is booked for next Saturday at noon.', Link_Module:'Task', Link_ID:'T002' },
+        { Note_ID:'N002', Date:'2026-06-16', Scenario:'Family Meeting', Content:'Discussed banquet table count assumptions.', Decision:'Use 18 tables as initial planning baseline.', Link_Module:'Vendor', Link_ID:'V001' }
+      ]
+    };
+    let state = loadStoredState() || structuredClone(defaultState);
+
+    const views = ['Dashboard','Timeline_Tasks','Vendor_Tracker','Guest_RSVP','Budget_Manager','Decision_Notes','SETUP_Dictionary'];
+    const app = document.getElementById('app');
+    const tabs = document.getElementById('tabs');
+    const saveStatus = document.getElementById('saveStatus');
+    const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'CNY', maximumFractionDigits: 0 });
+    const number = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+    const today = new Date('2026-06-17T00:00:00');
+    function sum(arr, selector) { return arr.reduce((total, row) => total + (+selector(row) || 0), 0); }
+    function pct(value) { return `${Math.round((value || 0) * 1000) / 10}%`; }
+    function escapeHtml(value) { return String(value ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch])); }
+    function dateValue(value) { return value ? new Date(value + 'T00:00:00') : null; }
+    function isOverdue(task) { const due = dateValue(task.Due_Date); return due && task.Status !== 'Completed' && due < today; }
+    function finalBalance(vendor) { return (+vendor.Contract_Amt || 0) - (+vendor.Deposit_Paid || 0); }
+    function actualCostForBudget(category) { return sum(state.vendors, vendor => dict.vendorToBudget[vendor.Category] === category ? vendor.Contract_Amt : 0); }
+    function computedBudget(row) { const actual = actualCostForBudget(row.Category); const variance = (+row.Plan_Budget || 0) - actual; return { actual, variance, status: variance < 0 ? 'OVER BUDGET' : 'ON TRACK' }; }
+    function storagePayload() {
+      return {
+        version: 1,
+        savedAt: new Date().toISOString(),
+        data: {
+          tasks: state.tasks,
+          vendors: state.vendors,
+          guests: state.guests,
+          budgets: state.budgets,
+          notes: state.notes
+        }
+      };
+    }
+    function loadStoredState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        const payload = JSON.parse(raw);
+        if (!payload || !payload.data) return null;
+        return { ...structuredClone(defaultState), ...payload.data, active: 'Dashboard' };
+      } catch (error) {
+        console.warn('Stored data could not be loaded.', error);
+        return null;
+      }
+    }
+    function formatSavedTime(iso) {
+      if (!iso) return 'Not saved';
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return 'Saved';
+      return `Saved ${d.toLocaleString([], { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' })}`;
+    }
+    function refreshSaveStatus() {
+      try {
+        const payload = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        saveStatus.textContent = formatSavedTime(payload && payload.savedAt);
+      } catch {
+        saveStatus.textContent = 'Not saved';
+      }
+    }
+    function saveData() {
+      const payload = storagePayload();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      saveStatus.textContent = formatSavedTime(payload.savedAt);
+    }
+    function exportBackup() {
+      const payload = storagePayload();
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const stamp = payload.savedAt.slice(0, 10);
+      a.href = url;
+      a.download = `wedding-control-board-backup-${stamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+    function importBackup(event) {
+      const file = event.target.files && event.target.files[0];
+      event.target.value = '';
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const payload = JSON.parse(String(reader.result || '{}'));
+          if (!payload.data || !Array.isArray(payload.data.tasks) || !Array.isArray(payload.data.vendors) || !Array.isArray(payload.data.guests) || !Array.isArray(payload.data.budgets) || !Array.isArray(payload.data.notes)) {
+            throw new Error('Invalid backup structure.');
+          }
+          state = { ...structuredClone(defaultState), ...payload.data, active: 'Dashboard' };
+          saveData();
+          render();
+        } catch (error) {
+          alert('This backup file could not be imported. Please choose a valid Wedding Control Board JSON backup.');
+        }
+      };
+      reader.readAsText(file);
+    }
+    function resetData() {
+      if (!confirm('Reset all local data to the starter sample? This cannot be undone unless you exported a backup.')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      state = structuredClone(defaultState);
+      render();
+      refreshSaveStatus();
+    }
+    function summary() {
+      const totalTasks = state.tasks.length;
+      const completedTasks = state.tasks.filter(t => t.Status === 'Completed').length;
+      const overdueTasks = state.tasks.filter(isOverdue).length;
+      const totalBudget = sum(state.budgets, b => b.Plan_Budget);
+      const actualCost = sum(state.budgets, b => computedBudget(b).actual);
+      const depositPaid = sum(state.vendors, v => v.Deposit_Paid);
+      const finalDue = sum(state.vendors, finalBalance);
+      const invited = sum(state.guests, g => g.Est_Guests);
+      const confirmed = sum(state.guests, g => g.RSVP_Status === 'Confirmed' ? g.Act_Guests : 0);
+      const tentative = sum(state.guests, g => g.RSVP_Status === 'Tentative' ? g.Est_Guests : 0);
+      return { totalTasks, completedTasks, completionRate: totalTasks ? completedTasks / totalTasks : 0, overdueTasks, totalBudget, actualCost, budgetUsed: totalBudget ? actualCost / totalBudget : 0, depositPaid, finalDue, invited, confirmed, tentative };
+    }
+    function setValue(collection, rowIndex, key, raw) {
+      const numeric = ['Contract_Amt','Deposit_Paid','Est_Guests','Act_Guests','Plan_Budget'].includes(key);
+      state[collection][rowIndex][key] = numeric ? Number(raw || 0) : raw;
+      saveData();
+      render();
+    }
+    function addRow(collection) {
+      const next = state[collection].length + 1;
+      const templates = {
+        tasks: { Task_ID:`T${String(next).padStart(3,'0')}`, Category:dict.taskCategories[0], Task_Name:'', Due_Date:'', Status:'Not Started', Owner:'Joint', Notes:'' },
+        vendors: { Vendor_ID:`V${String(next).padStart(3,'0')}`, Category:dict.vendorCategories[0], Vendor_Name:'', Contact:'', Contract_Amt:0, Deposit_Paid:0, Pay_Status:'Unpaid', Contract_Saved:'No' },
+        guests: { Guest_ID:`G${String(next).padStart(3,'0')}`, Guest_Name:'', Side:dict.guestSide[0], Group:dict.guestGroup[0], RSVP_Status:'Not Contacted', Est_Guests:1, Act_Guests:0, Table_No:'', Dietary_Req:'' },
+        budgets: { Budget_ID:`B${String(next).padStart(2,'0')}`, Category:dict.budgetCategories[0], Plan_Budget:0 },
+        notes: { Note_ID:`N${String(next).padStart(3,'0')}`, Date:'2026-06-17', Scenario:dict.noteScenario[0], Content:'', Decision:'', Link_Module:'None', Link_ID:'' }
+      };
+      state[collection].push(templates[collection]);
+      saveData();
+      render();
+    }
+    function cycle(collection, rowIndex, key, options) {
+      const current = state[collection][rowIndex][key];
+      const i = options.indexOf(current);
+      state[collection][rowIndex][key] = options[(i + 1) % options.length];
+      saveData();
+      render();
+    }
+    function input(collection, i, key, type = 'text') {
+      const value = state[collection][i][key] ?? '';
+      return `<input class="cell-input" type="${type}" value="${escapeHtml(value)}" oninput="setValue('${collection}',${i},'${key}',this.value)">`;
+    }
+    function area(collection, i, key) {
+      return `<textarea class="cell-input" oninput="setValue('${collection}',${i},'${key}',this.value)">${escapeHtml(state[collection][i][key] ?? '')}</textarea>`;
+    }
+    function select(collection, i, key, options) {
+      const current = state[collection][i][key];
+      return `<select class="cell-input" onchange="setValue('${collection}',${i},'${key}',this.value)">${options.map(o => `<option ${o === current ? 'selected' : ''}>${escapeHtml(o)}</option>`).join('')}</select>`;
+    }
+    function badge(label, action = false, extra = '', click = '') { return `<span class="badge ${action ? 'action' : ''} ${extra}" ${click}>${escapeHtml(label)}</span>`; }
+    function dataBar(value, max, formatter = number.format) {
+      const width = max ? Math.max(0, Math.min(100, value / max * 100)) : 0;
+      return `<div class="data-bar"><div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div><span class="bar-label">${formatter(value)}</span></div>`;
+    }
+    function table(headers, rows) {
+      return `<div class="table-card"><div class="table-scroll"><table><thead><tr>${headers.map(h => `<th class="${h.num ? 'num' : ''}">${escapeHtml(h.label || h)}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div></div>`;
+    }
+    function renderDashboard() {
+      const s = summary();
+      const maxBudget = Math.max(...state.budgets.map(b => Math.max(+b.Plan_Budget || 0, computedBudget(b).actual)), 1);
+      const openTasks = state.tasks.filter(t => t.Status !== 'Completed').sort((a,b) => (a.Due_Date || '').localeCompare(b.Due_Date || '')).slice(0, 8);
+      const byStatus = dict.rsvpStatus.map(status => ({ label: status, value: sum(state.guests, g => g.RSVP_Status === status ? g.Est_Guests : 0) }));
+      const maxGuest = Math.max(...byStatus.map(x => x.value), 1);
+      return `
+        <section class="view active">
+          <div class="page-header">
+            <div><h1 class="page-title">Wedding Control Board</h1><p class="page-subtitle">Live planning dashboard connected to tasks, vendors, RSVP, budget, and decision notes. All calculations run in the browser as inputs change.</p></div>
+            <div class="muted">As of 2026-06-17</div>
+          </div>
+          <div class="kpi-row">
+            <div class="card kpi-card"><div class="kpi-label">Completion Rate</div><div class="kpi-value accent">${pct(s.completionRate)}</div><div class="kpi-note">${s.completedTasks} of ${s.totalTasks} tasks complete</div></div>
+            <div class="card kpi-card"><div class="kpi-label">Total Budget</div><div class="kpi-value">${money.format(s.totalBudget)}</div><div class="kpi-note">Editable in Budget Manager</div></div>
+            <div class="card kpi-card ${s.actualCost > s.totalBudget ? 'anomaly' : ''}"><div class="kpi-label">Actual Cost</div><div class="kpi-value">${money.format(s.actualCost)}</div><div class="kpi-note">${pct(s.budgetUsed)} of planned budget</div></div>
+            <div class="card kpi-card"><div class="kpi-label">Confirmed Guests</div><div class="kpi-value">${number.format(s.confirmed)}</div><div class="kpi-note">${s.tentative} tentative guest headcount</div></div>
+            <div class="card kpi-card ${s.overdueTasks ? 'anomaly' : ''}"><div class="kpi-label">Overdue Tasks</div><div class="kpi-value">${number.format(s.overdueTasks)}</div><div class="kpi-note">${s.overdueTasks ? 'Action required this week' : 'No overdue task requiring action'}</div></div>
+          </div>
+          <div class="insight-block"><strong>Operating rhythm</strong><br>Review overdue tasks first, then confirm vendor balances and RSVP changes. Any edit in a tracker table updates this dashboard immediately.</div>
+          <div class="grid-2">
+            <div class="card panel">
+              <div class="section-head"><h2 class="section-title">Budget Exposure</h2><span class="muted">Plan vs actual</span></div>
+              <div class="progress-list">${state.budgets.map(b => { const c = computedBudget(b); return `<div><div class="section-head"><span>${escapeHtml(b.Category)}</span><span class="readonly">${money.format(c.actual)}</span></div>${dataBar(c.actual, maxBudget, money.format)}</div>`; }).join('')}</div>
+            </div>
+            <div class="card panel">
+              <div class="section-head"><h2 class="section-title">RSVP Shape</h2><span class="muted">Estimated guests</span></div>
+              <div class="mini-chart">${byStatus.map(item => `<div class="mini-bar"><div class="mini-bar-fill" style="height:${Math.max(4, item.value / maxGuest * 180)}px"></div><div class="mini-bar-label">${escapeHtml(item.label)}<br>${item.value}</div></div>`).join('')}</div>
+            </div>
+          </div>
+          <div class="section-head"><h2 class="section-title">Upcoming Task Feed</h2><span class="muted">Sorted by due date</span></div>
+          ${table([{label:'Task ID'},{label:'Category'},{label:'Task Name'},{label:'Due Date'},{label:'Status'}], openTasks.map(t => `<tr class="${isOverdue(t) ? 'anomaly' : ''}"><td>${t.Task_ID}</td><td>${t.Category}</td><td>${escapeHtml(t.Task_Name)}</td><td>${t.Due_Date || ''}</td><td>${badge(t.Status, isOverdue(t), t.Status === 'Completed' ? 'done' : '')}</td></tr>`))}
+        </section>`;
+    }
+    function renderTasks() {
+      const rows = state.tasks.map((t,i) => `<tr class="${isOverdue(t) ? 'anomaly' : ''}"><td>${input('tasks',i,'Task_ID')}</td><td>${select('tasks',i,'Category',dict.taskCategories)}</td><td>${input('tasks',i,'Task_Name')}</td><td>${input('tasks',i,'Due_Date','date')}</td><td>${badge(t.Status, isOverdue(t), t.Status === 'Completed' ? 'done' : '', `onclick="cycle('tasks',${i},'Status',dict.taskStatus)"`)}</td><td>${select('tasks',i,'Owner',dict.owners)}</td><td>${area('tasks',i,'Notes')}</td></tr>`);
+      return page('Timeline and Task Tracker', 'Manage milestones, due dates, owners, and overdue action signals.', 'tasks', [{label:'Task ID'},{label:'Category'},{label:'Task Name'},{label:'Due Date'},{label:'Status'},{label:'Owner'},{label:'Notes'}], rows, 'Task status badges are clickable and cycle through workflow states.');
+    }
+    function renderVendors() {
+      const maxContract = Math.max(...state.vendors.map(v => +v.Contract_Amt || 0), 1);
+      const rows = state.vendors.map((v,i) => { const balance = finalBalance(v); const action = balance > 0 && v.Pay_Status !== 'Paid in Full'; return `<tr class="${action ? 'anomaly' : ''}"><td>${input('vendors',i,'Vendor_ID')}</td><td>${select('vendors',i,'Category',dict.vendorCategories)}</td><td>${input('vendors',i,'Vendor_Name')}</td><td>${input('vendors',i,'Contact')}</td><td class="num">${input('vendors',i,'Contract_Amt','number')}</td><td class="num">${input('vendors',i,'Deposit_Paid','number')}</td><td>${dataBar(balance, maxContract, money.format)}</td><td>${badge(v.Pay_Status, action, '', `onclick="cycle('vendors',${i},'Pay_Status',dict.payStatus)"`)}</td><td>${select('vendors',i,'Contract_Saved',dict.yesNo)}</td></tr>`; });
+      return page('Vendor and Payment Tracker', 'Track contracts, deposits, final balances, payment status, and contract archive status.', 'vendors', [{label:'Vendor ID'},{label:'Category'},{label:'Vendor Name'},{label:'Contact'},{label:'Contract Amt',num:true},{label:'Deposit Paid',num:true},{label:'Final Balance',num:true},{label:'Pay Status'},{label:'Contract Saved'}], rows, 'Final balance is calculated as Contract Amount minus Deposit Paid and updates Dashboard totals immediately.');
+    }
+    function renderGuests() {
+      const rows = state.guests.map((g,i) => `<tr><td>${input('guests',i,'Guest_ID')}</td><td>${input('guests',i,'Guest_Name')}</td><td>${select('guests',i,'Side',dict.guestSide)}</td><td>${select('guests',i,'Group',dict.guestGroup)}</td><td>${badge(g.RSVP_Status, g.RSVP_Status === 'Not Contacted', '', `onclick="cycle('guests',${i},'RSVP_Status',dict.rsvpStatus)"`)}</td><td class="num">${input('guests',i,'Est_Guests','number')}</td><td class="num">${input('guests',i,'Act_Guests','number')}</td><td>${input('guests',i,'Table_No')}</td><td>${input('guests',i,'Dietary_Req')}</td></tr>`);
+      return page('Guest List and RSVP Tracker', 'Manage invited guests, side, grouping, attendance status, table assignment, and special requirements.', 'guests', [{label:'Guest ID'},{label:'Guest Name'},{label:'Side'},{label:'Group'},{label:'RSVP Status'},{label:'Est Guests',num:true},{label:'Act Guests',num:true},{label:'Table No'},{label:'Dietary Req'}], rows, 'RSVP status badges are clickable. Confirmed guests feed the Dashboard headcount KPI.');
+    }
+    function renderBudgets() {
+      const maxBudget = Math.max(...state.budgets.map(b => Math.max(+b.Plan_Budget || 0, computedBudget(b).actual)), 1);
+      const rows = state.budgets.map((b,i) => { const c = computedBudget(b); return `<tr class="${c.variance < 0 ? 'anomaly' : ''}"><td>${input('budgets',i,'Budget_ID')}</td><td>${select('budgets',i,'Category',dict.budgetCategories)}</td><td class="num">${input('budgets',i,'Plan_Budget','number')}</td><td>${dataBar(c.actual, maxBudget, money.format)}</td><td class="num readonly">${money.format(c.variance)}</td><td>${badge(c.status, c.variance < 0)}</td></tr>`; });
+      return page('Budget Manager', 'Plan budget by category and compare against vendor contract amounts through live JavaScript formulas.', 'budgets', [{label:'Budget ID'},{label:'Category'},{label:'Plan Budget',num:true},{label:'Actual Cost',num:true},{label:'Variance',num:true},{label:'Status'}], rows, 'Actual Cost is grouped from Vendor Tracker through the vendor-to-budget category map.');
+    }
+    function renderNotes() {
+      const rows = state.notes.map((n,i) => `<tr><td>${input('notes',i,'Note_ID')}</td><td>${input('notes',i,'Date','date')}</td><td>${select('notes',i,'Scenario',dict.noteScenario)}</td><td>${area('notes',i,'Content')}</td><td>${area('notes',i,'Decision')}</td><td>${select('notes',i,'Link_Module',dict.linkModule)}</td><td>${input('notes',i,'Link_ID')}</td></tr>`);
+      return page('Decision Notes and Call Log', 'Capture calls, verbal commitments, meeting decisions, and links back to task or vendor records.', 'notes', [{label:'Note ID'},{label:'Date'},{label:'Scenario'},{label:'Content'},{label:'Decision'},{label:'Link Module'},{label:'Link ID'}], rows, 'Use this view for the 30-second decision capture workflow after phone calls or family meetings.');
+    }
+    function renderDictionary() {
+      const columns = [['Task Categories', dict.taskCategories], ['Task Status', dict.taskStatus], ['Owners', dict.owners], ['Vendor Categories', dict.vendorCategories], ['RSVP Status', dict.rsvpStatus], ['Budget Categories', dict.budgetCategories]];
+      const max = Math.max(...columns.map(c => c[1].length));
+      const rows = Array.from({length: max}, (_, i) => `<tr>${columns.map(col => `<td>${escapeHtml(col[1][i] || '')}</td>`).join('')}</tr>`);
+      const mapRows = Object.entries(dict.vendorToBudget).map(([vendor,budget]) => `<tr><td>${escapeHtml(vendor)}</td><td>${escapeHtml(budget)}</td></tr>`);
+      return `<section class="view active"><div class="page-header"><div><h1 class="page-title">Setup Dictionary</h1><p class="page-subtitle">Reference lists used by dropdown controls and live budget category mapping.</p></div></div>${table(columns.map(c => ({label:c[0]})), rows)}<div class="section-head"><h2 class="section-title">Vendor to Budget Mapping</h2></div>${table([{label:'Vendor Category'},{label:'Budget Category'}], mapRows)}<div class="insight-block"><strong>Change discipline</strong><br>In this standalone HTML version, dictionary values are centralized in JavaScript constants. Editing lists requires changing the dictionary arrays near the top of the script.</div></section>`;
+    }
+    function page(title, subtitle, collection, headers, rows, note) {
+      return `<section class="view active"><div class="page-header"><div><h1 class="page-title">${title}</h1><p class="page-subtitle">${subtitle}</p></div><div class="toolbar"><button class="btn" onclick="addRow('${collection}')">Add Row</button></div></div><div class="insight-block"><strong>Live calculation</strong><br>${note}</div>${table(headers, rows)}</section>`;
+    }
+    function renderTabs() {
+      tabs.innerHTML = views.map(v => `<button class="tab ${state.active === v ? 'active' : ''}" onclick="state.active='${v}'; render();">${v}</button>`).join('');
+    }
+    function render() {
+      renderTabs();
+      const renderers = { Dashboard: renderDashboard, Timeline_Tasks: renderTasks, Vendor_Tracker: renderVendors, Guest_RSVP: renderGuests, Budget_Manager: renderBudgets, Decision_Notes: renderNotes, SETUP_Dictionary: renderDictionary };
+      app.innerHTML = renderers[state.active]();
+    }
+    window.setValue = setValue;
+    window.addRow = addRow;
+    window.cycle = cycle;
+    window.exportBackup = exportBackup;
+    window.importBackup = importBackup;
+    window.resetData = resetData;
+    window.dict = dict;
+    Object.defineProperty(window, 'state', { get: () => state });
+    refreshSaveStatus();
+    render();
+  </script>
+</body>
+</html>
